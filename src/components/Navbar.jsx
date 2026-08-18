@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, ChevronDown, Sparkles
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, SIMPLE_DEFAULT_AVATAR } from '../context/AuthContext';
 import { useArticles } from '../context/ArticleContext';
 import { useToast } from '../context/ToastContext';
 
@@ -167,18 +167,6 @@ const Navbar = () => {
             <span className="hidden sm:inline">Random</span>
           </button>
 
-          {/* Daily Streak Indicator (If logged in) */}
-          {user && (
-            <Link
-              to="/profile"
-              title={`Daily Learning Streak: ${user.streak || 1} Days`}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-200/50 dark:border-rose-800/50"
-            >
-              <Flame className="w-3.5 h-3.5 fill-rose-500 animate-pulse" />
-              <span>{user.streak || 1}d</span>
-            </Link>
-          )}
-
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -202,6 +190,10 @@ const Navbar = () => {
                 <img
                   src={user.avatar}
                   alt={user.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = SIMPLE_DEFAULT_AVATAR;
+                  }}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500"
                 />
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 hidden sm:block" />

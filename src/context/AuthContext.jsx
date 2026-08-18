@@ -2,15 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
+export const SIMPLE_DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="%236366f1"/><circle cx="50" cy="38" r="18" fill="%23ffffff"/><path d="M22 82c0-15 12-26 28-26s28 11 28 26" fill="%23ffffff"/></svg>`;
+
 const DEFAULT_USER = {
   id: 'usr-101',
   name: 'Ananya Deshmukh',
   email: 'ananya@oneminutelearn.com',
-  role: 'user', // 'guest', 'user', 'admin'
-  avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+  role: 'user',
+  avatar: SIMPLE_DEFAULT_AVATAR,
   bio: 'Neuroscientist & micro-learning enthusiast passionate about accessible knowledge.',
-  streak: 5,
-  lastReadDate: '2026-08-04',
   readingHistory: [],
   joinedDate: '2026-01-15'
 };
@@ -20,10 +20,8 @@ const DEFAULT_ADMIN = {
   name: 'Rohan Verma (Admin)',
   email: 'admin@oneminutelearn.com',
   role: 'admin',
-  avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+  avatar: SIMPLE_DEFAULT_AVATAR,
   bio: 'Lead Platform Moderator & Systems Administrator.',
-  streak: 14,
-  lastReadDate: '2026-08-05',
   readingHistory: [],
   joinedDate: '2025-11-01'
 };
@@ -31,7 +29,7 @@ const DEFAULT_ADMIN = {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('oml_user');
-    return saved ? JSON.parse(saved) : null; // Guest mode by default on 1st visit
+    return saved ? JSON.parse(saved) : DEFAULT_USER;
   });
 
   useEffect(() => {
@@ -47,15 +45,14 @@ export const AuthProvider = ({ children }) => {
       setUser(DEFAULT_ADMIN);
       return DEFAULT_ADMIN;
     }
+    const name = email.split('@')[0];
     const newUser = {
       id: 'usr-' + Date.now(),
-      name: email.split('@')[0],
+      name: name,
       email,
       role: 'user',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      bio: 'New One Minute Learner',
-      streak: 1,
-      lastReadDate: new Date().toISOString().split('T')[0],
+      avatar: SIMPLE_DEFAULT_AVATAR,
+      bio: 'Enthusiastic micro-learner.',
       readingHistory: [],
       joinedDate: new Date().toISOString().split('T')[0]
     };
@@ -79,10 +76,8 @@ export const AuthProvider = ({ children }) => {
       name,
       email,
       role: 'user',
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      avatar: SIMPLE_DEFAULT_AVATAR,
       bio: 'Enthusiastic micro-learner.',
-      streak: 1,
-      lastReadDate: new Date().toISOString().split('T')[0],
       readingHistory: [],
       joinedDate: new Date().toISOString().split('T')[0]
     };
@@ -91,37 +86,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(null); // Switch to Guest mode
+    setUser(null);
   };
 
-  // Streak & Reading History tracker
   const recordReadArticle = (articleId, articleTitle) => {
     if (!user) return;
-    const today = new Date().toISOString().split('T')[0];
-    
-    let newStreak = user.streak || 0;
-    if (user.lastReadDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      if (user.lastReadDate === yesterday) {
-        newStreak += 1;
-      } else {
-        newStreak = 1;
-      }
-    }
-
     const updatedHistory = [
       { articleId, title: articleTitle, readAt: new Date().toISOString() },
       ...(user.readingHistory || []).filter(h => h.articleId !== articleId)
     ];
 
-    const updatedUser = {
-      ...user,
-      streak: newStreak,
-      lastReadDate: today,
-      readingHistory: updatedHistory
-    };
-
-    setUser(updatedUser);
+    setUser(prev => prev ? { ...prev, readingHistory: updatedHistory } : prev);
   };
 
   const updateProfile = (updatedFields) => {
@@ -154,3 +129,4 @@ export const useAuth = () => {
   if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
+
